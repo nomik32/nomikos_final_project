@@ -1,0 +1,200 @@
+{% extends 'base/base.html' %}
+{% load static %}
+
+{% block title %}Shopping Cart - ReadEasy{% endblock %}
+
+{% block content %}
+<div class="container my-4">
+    <div class="row">
+        <div class="col-12">
+            <h2 class="mb-3">
+                <i class="fas fa-shopping-cart me-2"></i>Your eBook Cart
+            </h2>
+        </div>
+    </div>
+    
+    {% if cart_items %}
+    <div class="row">
+        <div class="col-lg-8">
+            <!-- Cart Items -->
+            <div class="cart-items">
+                {% for item in cart_items %}
+                <div class="cart-item" data-item-id="{{ item.id }}">
+                    <div class="row align-items-center">
+                        <div class="col-md-2">
+                            {% if item.book.cover_image %}
+                                <img src="{{ item.book.cover_image.url }}" alt="{{ item.book.title }}" class="img-fluid rounded">
+                            {% else %}
+                                <div class="bg-light rounded d-flex align-items-center justify-content-center" style="height: 100px;">
+                                    <i class="fas fa-book fa-2x text-muted"></i>
+                                </div>
+                            {% endif %}
+                        </div>
+                        <div class="col-md-4">
+                            <h5 class="mb-1">{{ item.book.title }}</h5>
+                            <p class="text-muted mb-1">{{ item.book.author }}</p>
+                            <p class="text-muted small mb-0">{{ item.book.get_genre_display }}</p>
+                        </div>
+                        <div class="col-md-2">
+                            <label for="quantity-{{ item.id }}" class="form-label">Quantity</label>
+                            <select class="form-select update-quantity" id="quantity-{{ item.id }}" data-item-id="{{ item.id }}">
+                                {% for i in "12345678910" %}
+                                    <option value="{{ i }}" {% if item.quantity == i|add:"0" %}selected{% endif %}>{{ i }}</option>
+                                {% endfor %}
+                            </select>
+                        </div>
+                        <div class="col-md-2 text-center">
+                            <p class="mb-1"><strong>Price</strong></p>
+                            <p class="text-primary">${{ item.book.price }}</p>
+                        </div>
+                        <div class="col-md-2 text-center">
+                            <p class="mb-1"><strong>Total</strong></p>
+                            <p class="text-success item-total">${{ item.total_price }}</p>
+                        </div>
+                        <div class="col-md-12 text-end mt-3">
+                            <button class="btn btn-outline-danger btn-sm remove-from-cart" data-item-id="{{ item.id }}" data-book-title="{{ item.book.title }}">
+                                <i class="fas fa-trash me-1"></i>Remove
+                            </button>
+                        </div>
+                    </div>
+                </div>
+                {% endfor %}
+            </div>
+            
+            <!-- Cart Actions -->
+            <div class="mt-4">
+                <div class="row">
+                    <div class="col-md-6">
+                        <a href="{% url 'books:book_list' %}" class="btn btn-outline-primary">
+                            <i class="fas fa-arrow-left me-2"></i>Continue Browsing eBooks
+                        </a>
+                    </div>
+                    <div class="col-md-6 text-end">
+                        <button type="button" class="btn btn-outline-secondary clear-cart-btn">
+                            <i class="fas fa-trash me-2"></i>Clear Cart
+                        </button>
+                    </div>
+                </div>
+            </div>
+        </div>
+        
+        <!-- Cart Summary -->
+        <div class="col-lg-4">
+            <div class="cart-total">
+                <h4 class="mb-4">
+                    <i class="fas fa-receipt me-2"></i>eBook Order Summary
+                </h4>
+                
+                <div class="row mb-3">
+                    <div class="col-6">
+                        <span>Items:</span>
+                    </div>
+                    <div class="col-6 text-end">
+                        <span>{{ cart.item_count }}</span>
+                    </div>
+                </div>
+                
+                <div class="row mb-3">
+                    <div class="col-6">
+                        <span>Subtotal:</span>
+                    </div>
+                    <div class="col-6 text-end">
+                        <span class="cart-total-amount">${{ cart.total_price }}</span>
+                    </div>
+                </div>
+                
+                <hr>
+                
+                <div class="row mb-4">
+                    <div class="col-6">
+                        <h5>Total:</h5>
+                    </div>
+                    <div class="col-6 text-end">
+                        <h5 class="cart-total-amount">${{ cart.total_price }}</h5>
+                    </div>
+                </div>
+                
+                <div class="d-grid">
+                    <a href="{% url 'cart:checkout' %}" class="btn btn-success btn-lg">
+                        <i class="fas fa-download me-2"></i>Checkout & Download
+                    </a>
+                </div>
+                
+                <div class="mt-3">
+                    <p class="text-muted small">
+                        <i class="fas fa-info-circle me-1"></i>
+                        After checkout, you'll be able to download your eBooks immediately. No shipping required!
+                    </p>
+                </div>
+            </div>
+        </div>
+    </div>
+    {% else %}
+    <!-- Empty Cart -->
+    <div class="row">
+        <div class="col-12">
+            <div class="empty-state">
+                <i class="fas fa-shopping-cart"></i>
+                <h4>Your eBook cart is empty</h4>
+                <p>Looks like you haven't added any eBooks to your cart yet.</p>
+                <a href="{% url 'books:book_list' %}" class="btn btn-primary btn-lg">
+                    <i class="fas fa-book me-2"></i>Browse eBooks
+                </a>
+            </div>
+        </div>
+    </div>
+    {% endif %}
+</div>
+
+<!-- Custom Confirmation Modal -->
+<div class="modal fade" id="removeItemModal" tabindex="-1" aria-labelledby="removeItemModalLabel" aria-hidden="true">
+    <div class="modal-dialog modal-dialog-centered">
+        <div class="modal-content">
+            <div class="modal-header">
+                <h5 class="modal-title" id="removeItemModalLabel">
+                    <i class="fas fa-exclamation-triangle text-warning me-2"></i>Remove Item
+                </h5>
+                <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Close"></button>
+            </div>
+            <div class="modal-body">
+                <p>Are you sure you want to remove "<span id="bookTitleToRemove"></span>" from your cart?</p>
+                <p class="text-muted small mb-0">This action cannot be undone.</p>
+            </div>
+            <div class="modal-footer">
+                <button type="button" class="btn btn-secondary" data-bs-dismiss="modal">
+                    <i class="fas fa-times me-1"></i>Cancel
+                </button>
+                <button type="button" class="btn btn-danger" id="confirmRemoveItem">
+                    <i class="fas fa-trash me-1"></i>Remove Item
+                </button>
+            </div>
+        </div>
+    </div>
+</div>
+
+<!-- Clear Cart Confirmation Modal -->
+<div class="modal fade" id="clearCartModal" tabindex="-1" aria-labelledby="clearCartModalLabel" aria-hidden="true">
+    <div class="modal-dialog modal-dialog-centered">
+        <div class="modal-content">
+            <div class="modal-header">
+                <h5 class="modal-title" id="clearCartModalLabel">
+                    <i class="fas fa-exclamation-triangle text-warning me-2"></i>Clear Cart
+                </h5>
+                <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Close"></button>
+            </div>
+            <div class="modal-body">
+                <p>Are you sure you want to clear your entire cart?</p>
+                <p class="text-muted small mb-0">This will remove all items from your cart and cannot be undone.</p>
+            </div>
+            <div class="modal-footer">
+                <button type="button" class="btn btn-secondary" data-bs-dismiss="modal">
+                    <i class="fas fa-times me-1"></i>Cancel
+                </button>
+                <button type="button" class="btn btn-danger" id="confirmClearCart">
+                    <i class="fas fa-trash me-1"></i>Clear Cart
+                </button>
+            </div>
+        </div>
+    </div>
+</div>
+{% endblock %} 

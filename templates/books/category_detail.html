@@ -1,0 +1,157 @@
+{% extends 'base/base.html' %}
+{% load static %}
+
+{% block title %}{{ category.name }} - ReadEasy{% endblock %}
+
+{% block content %}
+<div class="container my-4">
+    <div class="row">
+        <div class="col-12">
+            <nav aria-label="breadcrumb">
+                <ol class="breadcrumb">
+                    <li class="breadcrumb-item"><a href="{% url 'home' %}">Home</a></li>
+                    <li class="breadcrumb-item"><a href="{% url 'books:category_list' %}">Categories</a></li>
+                    <li class="breadcrumb-item active">{{ category.name }}</li>
+                </ol>
+            </nav>
+            
+            <h2><i class="fas fa-book-open me-2"></i>{{ category.name }}</h2>
+            <p class="text-muted">{{ category.description }}</p>
+        </div>
+    </div>
+    
+    <!-- Search and Filter -->
+    <div class="search-section mb-4">
+        <form method="GET" action="{% url 'books:category_detail' category.slug %}">
+            <div class="row">
+                <div class="col-md-6">
+                    <input type="text" name="q" class="form-control" placeholder="Search in {{ category.name }}..." value="{{ request.GET.q }}">
+                </div>
+                <div class="col-md-3">
+                    <select name="sort" class="form-select">
+                        <option value="-created_at" {% if request.GET.sort == '-created_at' %}selected{% endif %}>Newest First</option>
+                        <option value="created_at" {% if request.GET.sort == 'created_at' %}selected{% endif %}>Oldest First</option>
+                        <option value="title" {% if request.GET.sort == 'title' %}selected{% endif %}>Title A-Z</option>
+                        <option value="-title" {% if request.GET.sort == '-title' %}selected{% endif %}>Title Z-A</option>
+                        <option value="price" {% if request.GET.sort == 'price' %}selected{% endif %}>Price Low to High</option>
+                        <option value="-price" {% if request.GET.sort == '-price' %}selected{% endif %}>Price High to Low</option>
+                        <option value="-average_rating" {% if request.GET.sort == '-average_rating' %}selected{% endif %}>Highest Rated</option>
+                    </select>
+                </div>
+                <div class="col-md-3">
+                    <button type="submit" class="btn btn-primary w-100">
+                        <i class="fas fa-search me-2"></i>Search
+                    </button>
+                </div>
+            </div>
+        </form>
+    </div>
+    
+    <!-- Results Header -->
+    <div class="row mb-4">
+        <div class="col-12">
+            <p class="text-muted">
+                Showing {{ page_obj.start_index }}-{{ page_obj.end_index }} of {{ page_obj.paginator.count }} books in {{ category.name }}
+            </p>
+        </div>
+    </div>
+    
+    <!-- Books Grid -->
+    <div class="row book-list-row">
+        {% for book in page_obj %}
+        <div class="col-lg-4 col-md-6 col-sm-12 mb-4">
+            <div class="card book-card h-100">
+                {% if book.cover_image %}
+                    <img src="{{ book.cover_image.url }}" class="card-img-top" alt="{{ book.title }}">
+                {% else %}
+                    <div class="card-img-top bg-light d-flex align-items-center justify-content-center">
+                        <i class="fas fa-book fa-3x text-muted"></i>
+                    </div>
+                {% endif %}
+                <div class="card-body d-flex flex-column">
+                    <h6 class="card-title">{{ book.title }}</h6>
+                    <p class="card-text text-muted">{{ book.author }}</p>
+                    <div class="book-rating mb-2">
+                        {% for i in "12345" %}
+                            {% if forloop.counter <= book.average_rating %}
+                                <i class="fas fa-star text-warning"></i>
+                            {% else %}
+                                <i class="far fa-star text-warning"></i>
+                            {% endif %}
+                        {% endfor %}
+                        <small class="text-muted">({{ book.total_ratings }})</small>
+                    </div>
+                    <div class="book-price mt-auto">${{ book.price }}</div>
+                    <div class="mt-2">
+                        <a href="{% url 'books:book_detail' book.id %}" class="btn btn-sm btn-outline-primary">
+                            <i class="fas fa-eye me-1"></i>View
+                        </a>
+                        {% if user.is_authenticated %}
+                            <button class="btn btn-sm btn-outline-success add-to-cart" data-book-id="{{ book.id }}">
+                                <i class="fas fa-shopping-cart"></i>
+                            </button>
+                        {% endif %}
+                    </div>
+                </div>
+            </div>
+        </div>
+        {% empty %}
+        <div class="col-12 text-center">
+            <div class="py-5">
+                <i class="fas fa-search fa-3x text-muted mb-3"></i>
+                <h4>No books found in {{ category.name }}</h4>
+                <p class="text-muted">Try adjusting your search criteria or browse other categories.</p>
+                <a href="{% url 'books:category_list' %}" class="btn btn-primary">
+                    <i class="fas fa-th-large me-2"></i>Browse All Categories
+                </a>
+            </div>
+        </div>
+        {% endfor %}
+    </div>
+    
+    <!-- Pagination -->
+    {% if page_obj.has_other_pages %}
+    <nav aria-label="Books pagination">
+        <ul class="pagination justify-content-center">
+            {% if page_obj.has_previous %}
+                <li class="page-item">
+                    <a class="page-link" href="?page=1{% if request.GET.q %}&q={{ request.GET.q }}{% endif %}{% if request.GET.sort %}&sort={{ request.GET.sort }}{% endif %}">
+                        <i class="fas fa-angle-double-left"></i>
+                    </a>
+                </li>
+                <li class="page-item">
+                    <a class="page-link" href="?page={{ page_obj.previous_page_number }}{% if request.GET.q %}&q={{ request.GET.q }}{% endif %}{% if request.GET.sort %}&sort={{ request.GET.sort }}{% endif %}">
+                        <i class="fas fa-angle-left"></i>
+                    </a>
+                </li>
+            {% endif %}
+
+            {% for num in page_obj.paginator.page_range %}
+                {% if page_obj.number == num %}
+                    <li class="page-item active">
+                        <span class="page-link">{{ num }}</span>
+                    </li>
+                {% elif num > page_obj.number|add:'-3' and num < page_obj.number|add:'3' %}
+                    <li class="page-item">
+                        <a class="page-link" href="?page={{ num }}{% if request.GET.q %}&q={{ request.GET.q }}{% endif %}{% if request.GET.sort %}&sort={{ request.GET.sort }}{% endif %}">{{ num }}</a>
+                    </li>
+                {% endif %}
+            {% endfor %}
+
+            {% if page_obj.has_next %}
+                <li class="page-item">
+                    <a class="page-link" href="?page={{ page_obj.next_page_number }}{% if request.GET.q %}&q={{ request.GET.q }}{% endif %}{% if request.GET.sort %}&sort={{ request.GET.sort }}{% endif %}">
+                        <i class="fas fa-angle-right"></i>
+                    </a>
+                </li>
+                <li class="page-item">
+                    <a class="page-link" href="?page={{ page_obj.paginator.num_pages }}{% if request.GET.q %}&q={{ request.GET.q }}{% endif %}{% if request.GET.sort %}&sort={{ request.GET.sort }}{% endif %}">
+                        <i class="fas fa-angle-double-right"></i>
+                    </a>
+                </li>
+            {% endif %}
+        </ul>
+    </nav>
+    {% endif %}
+</div>
+{% endblock %} 

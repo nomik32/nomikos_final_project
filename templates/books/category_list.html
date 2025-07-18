@@ -1,0 +1,40 @@
+{% extends 'base/base.html' %}
+{% load static %}
+
+{% block title %}Categories - ReadEasy{% endblock %}
+
+{% block content %}
+<div class="container my-4">
+    <div class="row">
+        <div class="col-12">
+            <h2><i class="fas fa-th-large me-2"></i>Browse by Category</h2>
+            <p class="text-muted">Explore our collection organized by categories</p>
+        </div>
+    </div>
+    
+    <div class="row">
+        {% for category in categories %}
+        <div class="col-lg-3 col-md-6 mb-4">
+            <div class="card category-card h-100">
+                <div class="card-body text-center">
+                    <i class="fas fa-book-open mb-3"></i>
+                    <h5 class="card-title">{{ category.name }}</h5>
+                    <p class="card-text text-muted">{{ category.description|truncatewords:15 }}</p>
+                    <a href="{% url 'books:category_detail' category.slug %}" class="btn btn-primary">
+                        Browse
+                    </a>
+                </div>
+            </div>
+        </div>
+        {% empty %}
+        <div class="col-12 text-center">
+            <div class="py-5">
+                <i class="fas fa-folder-open fa-3x text-muted mb-3"></i>
+                <h4>No categories available</h4>
+                <p class="text-muted">Categories will be added soon.</p>
+            </div>
+        </div>
+        {% endfor %}
+    </div>
+</div>
+{% endblock %} 
