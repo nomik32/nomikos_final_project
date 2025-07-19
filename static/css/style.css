@@ -501,23 +501,7 @@ footer a:hover {
     color: var(--white) !important;
 }
 
-/* Dashboard */
-.dashboard-stats {
-    background: var(--white);
-    border-radius: var(--radius);
-    padding: 2rem;
-    text-align: center;
-    box-shadow: var(--shadow-sm);
-    border: 1px solid var(--border-color);
-    margin-bottom: 2rem;
-}
 
-.dashboard-stats i {
-    font-size: 2.5rem;
-    color: var(--accent-color);
-    margin-bottom: 1rem;
-    opacity: 0.8;
-}
 
 /* Profile */
 .profile-card {
@@ -671,4 +655,66 @@ footer a:hover {
     padding: 0.25rem 0.5rem;
     font-size: 0.75rem;
     font-weight: 600;
+}
+
+/* Register Form Input Centering */
+.form-control {
+    text-align: center;
+}
+
+/* Disable hover effect for register page card */
+.card.shadow-lg:hover {
+    transform: none;
+    box-shadow: var(--shadow-lg);
+}
+
+/* Clickable Book Cards */
+.book-card {
+    position: relative;
+    cursor: pointer;
+    transition: all 0.3s ease;
+}
+
+.book-card-link {
+    display: block;
+    text-decoration: none;
+    color: inherit;
+    height: 100%;
+}
+
+.book-card-link:hover {
+    text-decoration: none;
+    color: inherit;
+}
+
+.book-card-link:focus {
+    outline: none;
+}
+
+.card-actions {
+    position: absolute;
+    bottom: 0;
+    left: 0;
+    right: 0;
+    background: rgba(255, 255, 255, 0.95);
+    padding: 10px;
+    border-top: 1px solid var(--border-color);
+    display: flex;
+    gap: 8px;
+    justify-content: center;
+    opacity: 0;
+    transition: opacity 0.3s ease;
+}
+
+.book-card:hover .card-actions {
+    opacity: 1;
+}
+
+.card-actions .btn {
+    z-index: 10;
+    position: relative;
+}
+
+.card-actions .btn:hover {
+    z-index: 11;
 } 

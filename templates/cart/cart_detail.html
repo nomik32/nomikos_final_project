@@ -4,6 +4,9 @@
 {% block title %}Shopping Cart - ReadEasy{% endblock %}
 
 {% block content %}
+<!-- CSRF Token for AJAX requests -->
+{% csrf_token %}
+
 <div class="container my-4">
     <div class="row">
         <div class="col-12">
@@ -38,8 +41,9 @@
                         <div class="col-md-2">
                             <label for="quantity-{{ item.id }}" class="form-label">Quantity</label>
                             <select class="form-select update-quantity" id="quantity-{{ item.id }}" data-item-id="{{ item.id }}">
+                                <option value="0">Remove</option>
                                 {% for i in "12345678910" %}
-                                    <option value="{{ i }}" {% if item.quantity == i|add:"0" %}selected{% endif %}>{{ i }}</option>
+                                    <option value="{{ forloop.counter }}" {% if item.quantity == forloop.counter %}selected{% endif %}>{{ forloop.counter }}</option>
                                 {% endfor %}
                             </select>
                         </div>

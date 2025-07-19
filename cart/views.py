@@ -73,26 +73,39 @@ def update_cart_item(request):
     try:
         # Get the cart item
         cart_item = CartItem.objects.get(id=item_id, cart__user=request.user)
+        user_cart = cart_item.cart
         
         if new_quantity <= 0:
             # Remove item if quantity is 0 or less
+            book_title = cart_item.book.title
             cart_item.delete()
             message = 'Item removed from cart.'
+            item_total = '0.00'
         else:
             # Update quantity
             cart_item.quantity = new_quantity
             cart_item.save()
             message = 'Cart updated successfully!'
+            item_total = str(cart_item.total_price)
         
-        # Get updated cart info
-        user_cart = request.user.cart
+        # Get fresh cart data after changes
+        try:
+            # Get the cart again to ensure we have fresh data
+            user_cart = Cart.objects.get(user=request.user)
+            cart_total = str(user_cart.total_price)
+            cart_count = user_cart.item_count
+        except Cart.DoesNotExist:
+            # Cart was deleted, create new one
+            user_cart = Cart.objects.create(user=request.user)
+            cart_total = '0.00'
+            cart_count = 0
         
         return JsonResponse({
             'success': True,
             'message': message,
-            'item_total': str(cart_item.total_price),
-            'cart_total': str(user_cart.total_price),
-            'cart_count': user_cart.item_count
+            'item_total': item_total,
+            'cart_total': cart_total,
+            'cart_count': cart_count
         })
     
     except CartItem.DoesNotExist:
@@ -101,6 +114,7 @@ def update_cart_item(request):
             'message': 'Cart item not found.'
         })
     except Exception as e:
+        print(f"Error in update_cart_item: {e}")  # Debug print
         return JsonResponse({
             'success': False,
             'message': 'Error updating cart.'
@@ -117,11 +131,18 @@ def remove_from_cart(request):
         cart_item = CartItem.objects.get(id=item_id, cart__user=request.user)
         book_title = cart_item.book.title
         
+        # Get cart info before deleting
+        user_cart = cart_item.cart
+        
         # Remove the item
         cart_item.delete()
         
-        # Get updated cart info
-        user_cart = request.user.cart
+        # Refresh cart from database
+        try:
+            user_cart.refresh_from_db()
+        except:
+            # If cart doesn't exist anymore, create a new one
+            user_cart, created = Cart.objects.get_or_create(user=request.user)
         
         return JsonResponse({
             'success': True,
@@ -136,23 +157,39 @@ def remove_from_cart(request):
             'message': 'Cart item not found.'
         })
     except Exception as e:
+        print(f"Error in remove_from_cart: {e}")  # Debug print
         return JsonResponse({
             'success': False,
             'message': 'Error removing item from cart.'
         })
 
 @login_required
+@require_POST
 def clear_cart(request):
-    """Remove all items from the cart"""
-    if request.method == 'POST':
-        # Get user's cart and remove all items
-        user_cart = request.user.cart
+    """Remove all items from the cart (AJAX)"""
+    try:
+        # Get user's cart (create if doesn't exist)
+        user_cart, created = Cart.objects.get_or_create(user=request.user)
+        
+        # Remove all items from cart
+        deleted_count = user_cart.items.count()
         user_cart.items.all().delete()
         
-        messages.success(request, 'Cart cleared successfully!')
-        return redirect('cart:cart_detail')
+        print(f"Cleared {deleted_count} items from cart for user {request.user.username}")  # Debug
+        
+        return JsonResponse({
+            'success': True,
+            'message': f'Cart cleared successfully! Removed {deleted_count} items.',
+            'cart_total': '0.00',
+            'cart_count': 0
+        })
     
-    return redirect('cart:cart_detail')
+    except Exception as e:
+        print(f"Error in clear_cart: {e}")  # Debug print
+        return JsonResponse({
+            'success': False,
+            'message': f'Error clearing cart: {str(e)}'
+        })
 
 @login_required
 def checkout(request):
@@ -172,7 +209,7 @@ def checkout(request):
         user_cart.items.all().delete()
         
         messages.success(request, 'Order placed successfully! Your books are ready for download.')
-        return redirect('accounts:dashboard')
+        return redirect('home')
     
     context = {
         'cart': user_cart,

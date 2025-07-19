@@ -4,6 +4,7 @@
 {% block title %}{{ book.title }} - ReadEasy{% endblock %}
 
 {% block content %}
+{% csrf_token %}
 <div class="container my-5">
     <div class="row justify-content-center">
         <!-- Book Details Card -->
@@ -88,7 +89,7 @@
                     <a href="{% url 'books:category_detail' book.category.slug %}" class="btn btn-outline-secondary">
                         <i class="fas fa-th-large me-2"></i>More in {{ book.category.name }}
                     </a>
-                    <button class="btn btn-outline-info" onclick="showBookPreview({{ book.id }})">
+                    <button class="btn btn-outline-info show-book-preview" data-book-id="{{ book.id }}">
                         <i class="fas fa-eye me-2"></i>Preview Book
                     </button>
                 </div>

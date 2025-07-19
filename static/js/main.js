@@ -116,8 +116,9 @@ $(document).ready(function() {
     // Update Cart Item Quantity
     $('.update-quantity').change(function() {
         var itemId = $(this).data('item-id');
-        var quantity = $(this).val();
+        var quantity = parseInt($(this).val());
         var select = $(this);
+        var cartItem = select.closest('.cart-item');
         
         $.ajax({
             url: '/cart/update/',
@@ -129,21 +130,33 @@ $(document).ready(function() {
             },
             success: function(response) {
                 if (response.success) {
-                    // Update item total
-                    select.closest('.cart-item').find('.item-total').text('$' + response.item_total);
+                    if (quantity === 0) {
+                        // Item was removed, hide the cart item
+                        cartItem.fadeOut(300, function() {
+                            cartItem.remove();
+                            
+                            // Check if cart is empty
+                            if (response.cart_count == 0) {
+                                location.reload();
+                            }
+                        });
+                        showNotification('Item removed from cart!', 'success');
+                    } else {
+                        // Update item total
+                        cartItem.find('.item-total').text('$' + response.item_total);
+                        showNotification('Cart updated successfully!', 'success');
+                    }
                     
                     // Update cart total
                     $('.cart-total-amount').text('$' + response.cart_total);
                     
                     // Update cart count
                     updateCartCount(response.cart_count);
-                    
-                    showNotification('Cart updated successfully!', 'success');
                 } else {
                     showNotification('Error updating cart. Please try again.', 'error');
                 }
             },
-            error: function() {
+            error: function(xhr, status, error) {
                 showNotification('Error updating cart. Please try again.', 'error');
             }
         });
@@ -172,23 +185,39 @@ $(document).ready(function() {
                     csrfmiddlewaretoken: $('[name=csrfmiddlewaretoken]').val()
                 },
                 success: function(response) {
-                    if (response.success) {
-                        // Hide the modal
-                        removeModal.hide();
-                        
+                    console.log('Response:', response); // Debug
+                    
+                    // Hide the modal first
+                    removeModal.hide();
+                    
+                    // Check if response is a string (needs parsing) or object
+                    if (typeof response === 'string') {
+                        try {
+                            response = JSON.parse(response);
+                        } catch (e) {
+                            console.log('Failed to parse response:', e);
+                        }
+                    }
+                    
+                    // Check if the operation was successful
+                    if (response && response.success) {
                         // Animate removal
                         item.fadeOut(300, function() {
                             item.remove();
                             
-                            // Update cart total
-                            $('.cart-total-amount').text('$' + response.cart_total);
+                            // Update cart total if available
+                            if (response.cart_total) {
+                                $('.cart-total-amount').text('$' + response.cart_total);
+                            }
                             
-                            // Update cart count
-                            updateCartCount(response.cart_count);
-                            
-                            // Check if cart is empty
-                            if (response.cart_count == 0) {
-                                location.reload();
+                            // Update cart count if available
+                            if (response.cart_count !== undefined) {
+                                updateCartCount(response.cart_count);
+                                
+                                // Check if cart is empty
+                                if (response.cart_count == 0) {
+                                    location.reload();
+                                }
                             }
                         });
                         
@@ -197,7 +226,9 @@ $(document).ready(function() {
                         showNotification('Error removing item. Please try again.', 'error');
                     }
                 },
-                error: function() {
+                error: function(xhr, status, error) {
+                    console.log('Error:', xhr.responseText); // Debug
+                    removeModal.hide();
                     showNotification('Error removing item. Please try again.', 'error');
                 }
             });
@@ -219,13 +250,28 @@ $(document).ready(function() {
                     csrfmiddlewaretoken: $('[name=csrfmiddlewaretoken]').val()
                 },
                 success: function(response) {
+                    console.log('Clear cart response:', response); // Debug
+                    
                     // Hide the modal
                     clearCartModal.hide();
                     
-                    // Reload the page to show empty cart
-                    location.reload();
+                    if (response.success) {
+                        // Update cart total and count
+                        $('.cart-total-amount').text('$' + response.cart_total);
+                        updateCartCount(response.cart_count);
+                        
+                        // Show success message
+                        showNotification(response.message, 'success');
+                        
+                        // Reload the page to show empty cart
+                        location.reload();
+                    } else {
+                        showNotification('Error clearing cart. Please try again.', 'error');
+                    }
                 },
-                error: function() {
+                error: function(xhr, status, error) {
+                    console.log('Clear cart error:', xhr.responseText); // Debug
+                    clearCartModal.hide();
                     showNotification('Error clearing cart. Please try again.', 'error');
                 }
             });
@@ -260,6 +306,33 @@ $(document).ready(function() {
         });
     }
     
+    // Book Preview
+    $('.show-book-preview').click(function() {
+        var bookId = $(this).data('book-id');
+        
+        // Show the modal
+        var previewModal = new bootstrap.Modal(document.getElementById('bookPreviewModal'));
+        previewModal.show();
+        
+        // Load preview content via AJAX
+        $.ajax({
+            url: '/books/preview/' + bookId + '/',
+            method: 'GET',
+            success: function(response) {
+                $('#bookPreviewModal .modal-body').html(response);
+            },
+            error: function() {
+                $('#bookPreviewModal .modal-body').html(
+                    '<div class="text-center py-4">' +
+                    '<i class="fas fa-exclamation-triangle text-warning fa-3x mb-3"></i>' +
+                    '<h5>Preview Not Available</h5>' +
+                    '<p class="text-muted">Sorry, the preview for this book is not available at the moment.</p>' +
+                    '</div>'
+                );
+            }
+        });
+    });
+
     // Wishlist Toggle
     $('.wishlist-toggle').click(function() {
         var bookId = $(this).data('book-id');

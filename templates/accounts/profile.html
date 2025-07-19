@@ -1,0 +1,183 @@
+{% extends 'base/base.html' %}
+{% load static %}
+
+{% block title %}Profile - ReadEasy{% endblock %}
+
+{% block content %}
+<div class="container my-4">
+    <!-- Profile Header -->
+    <div class="row mb-4">
+        <div class="col-12">
+            <h2 class="mb-2">
+                <i class="fas fa-user-circle me-2"></i>My Profile
+            </h2>
+            <p class="text-muted">Manage your personal information and preferences</p>
+        </div>
+    </div>
+
+    <div class="row">
+        <!-- Profile Information -->
+        <div class="col-lg-8">
+            <div class="card">
+                <div class="card-header">
+                    <h5 class="mb-0">
+                        <i class="fas fa-edit me-2"></i>Edit Profile
+                    </h5>
+                </div>
+                <div class="card-body">
+                    <form method="POST" enctype="multipart/form-data">
+                        {% csrf_token %}
+                        
+                        <!-- Profile Picture -->
+                        <div class="row mb-4">
+                            <div class="col-md-3">
+                                <div class="text-center">
+                                    {% if profile.profile_picture %}
+                                        <img src="{{ profile.profile_picture.url }}" alt="Profile Picture" class="profile-picture mb-3">
+                                    {% else %}
+                                        <div class="profile-picture-placeholder mb-3">
+                                            <i class="fas fa-user fa-3x text-muted"></i>
+                                        </div>
+                                    {% endif %}
+                                    <div class="mb-3">
+                                        <label for="profile_picture" class="form-label">Profile Picture</label>
+                                        <input type="file" class="form-control" id="profile_picture" name="profile_picture" accept="image/*">
+                                        <small class="text-muted">Upload a profile picture (optional)</small>
+                                    </div>
+                                </div>
+                            </div>
+                            <div class="col-md-9">
+                                <div class="row">
+                                    <div class="col-md-6 mb-3">
+                                        <label for="username" class="form-label">Username</label>
+                                        <input type="text" class="form-control" id="username" value="{{ user.username }}" readonly>
+                                        <small class="text-muted">Username cannot be changed</small>
+                                    </div>
+                                    <div class="col-md-6 mb-3">
+                                        <label for="email" class="form-label">Email</label>
+                                        <input type="email" class="form-control" id="email" value="{{ user.email }}" readonly>
+                                        <small class="text-muted">Email cannot be changed here</small>
+                                    </div>
+                                </div>
+                            </div>
+                        </div>
+
+                        <!-- Bio -->
+                        <div class="mb-3">
+                            <label for="bio" class="form-label">Bio</label>
+                            <textarea class="form-control" id="bio" name="bio" rows="4" placeholder="Tell us about yourself...">{{ profile.bio }}</textarea>
+                            <small class="text-muted">Share a bit about your reading interests and preferences</small>
+                        </div>
+
+                        <!-- Favorite Genre -->
+                        <div class="mb-3">
+                            <label for="favorite_genre" class="form-label">Favorite Genre</label>
+                            <select class="form-select" id="favorite_genre" name="favorite_genre">
+                                <option value="">Select your favorite genre</option>
+                                <option value="romance" {% if profile.favorite_genre == 'romance' %}selected{% endif %}>Romance</option>
+                                <option value="mystery" {% if profile.favorite_genre == 'mystery' %}selected{% endif %}>Mystery</option>
+                                <option value="sci-fi" {% if profile.favorite_genre == 'sci-fi' %}selected{% endif %}>Science Fiction</option>
+                                <option value="fantasy" {% if profile.favorite_genre == 'fantasy' %}selected{% endif %}>Fantasy</option>
+                                <option value="biography" {% if profile.favorite_genre == 'biography' %}selected{% endif %}>Biography</option>
+                                <option value="history" {% if profile.favorite_genre == 'history' %}selected{% endif %}>History</option>
+                                <option value="self-help" {% if profile.favorite_genre == 'self-help' %}selected{% endif %}>Self-Help</option>
+                                <option value="business" {% if profile.favorite_genre == 'business' %}selected{% endif %}>Business</option>
+                                <option value="textbook" {% if profile.favorite_genre == 'textbook' %}selected{% endif %}>Textbook</option>
+                                <option value="reference" {% if profile.favorite_genre == 'reference' %}selected{% endif %}>Reference</option>
+                                <option value="study-guide" {% if profile.favorite_genre == 'study-guide' %}selected{% endif %}>Study Guide</option>
+                                <option value="children" {% if profile.favorite_genre == 'children' %}selected{% endif %}>Children's Books</option>
+                            </select>
+                        </div>
+
+                        <!-- Birth Date -->
+                        <div class="mb-4">
+                            <label for="birth_date" class="form-label">Birth Date</label>
+                            <input type="date" class="form-control" id="birth_date" name="birth_date" value="{{ profile.birth_date|date:'Y-m-d' }}">
+                            <small class="text-muted">Your birth date helps us recommend age-appropriate books</small>
+                        </div>
+
+                        <!-- Submit Button -->
+                        <div class="d-flex justify-content-between">
+                            <button type="submit" class="btn btn-primary">
+                                <i class="fas fa-save me-2"></i>Save Changes
+                            </button>
+                            <a href="{% url 'home' %}" class="btn btn-outline-secondary">
+                                <i class="fas fa-home me-2"></i>Back to Home
+                            </a>
+                        </div>
+                    </form>
+                </div>
+            </div>
+        </div>
+
+        <!-- Profile Stats -->
+        <div class="col-lg-4">
+            <div class="card mb-4">
+                <div class="card-header">
+                    <h5 class="mb-0">
+                        <i class="fas fa-chart-bar me-2"></i>Profile Stats
+                    </h5>
+                </div>
+                <div class="card-body">
+                    <div class="d-flex justify-content-between align-items-center mb-3">
+                        <span>Member since:</span>
+                        <strong>{{ user.date_joined|date:"M d, Y" }}</strong>
+                    </div>
+                    <div class="d-flex justify-content-between align-items-center mb-3">
+                        <span>Last login:</span>
+                        <strong>{{ user.last_login|date:"M d, Y" }}</strong>
+                    </div>
+                    <div class="d-flex justify-content-between align-items-center mb-3">
+                        <span>Account status:</span>
+                        <span class="badge bg-success">Active</span>
+                    </div>
+                </div>
+            </div>
+
+            <!-- Quick Links -->
+            <div class="card">
+                <div class="card-header">
+                    <h5 class="mb-0">
+                        <i class="fas fa-link me-2"></i>Quick Links
+                    </h5>
+                </div>
+                <div class="card-body">
+                    <div class="d-grid gap-2">
+                        <a href="{% url 'home' %}" class="btn btn-outline-primary btn-sm">
+                            <i class="fas fa-home me-2"></i>Home
+                        </a>
+                        <a href="{% url 'cart:cart_detail' %}" class="btn btn-outline-success btn-sm">
+                            <i class="fas fa-shopping-cart me-2"></i>Shopping Cart
+                        </a>
+                        <a href="{% url 'books:book_list' %}" class="btn btn-outline-info btn-sm">
+                            <i class="fas fa-book me-2"></i>Browse Books
+                        </a>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+</div>
+
+<style>
+.profile-picture {
+    width: 120px;
+    height: 120px;
+    border-radius: 50%;
+    object-fit: cover;
+    border: 4px solid var(--light-gray);
+}
+
+.profile-picture-placeholder {
+    width: 120px;
+    height: 120px;
+    border-radius: 50%;
+    background-color: var(--light-gray);
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    border: 4px solid var(--border-color);
+    margin: 0 auto;
+}
+</style>
+{% endblock %} 
