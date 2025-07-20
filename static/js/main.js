@@ -7,10 +7,25 @@ $(document).ready(function() {
         return new bootstrap.Tooltip(tooltipTriggerEl);
     });
     
-    // Star Rating System
-    $('.star-rating input[type="radio"]').change(function() {
-        var rating = $(this).val();
-        var bookId = $(this).data('book-id');
+    // Review Form Submission
+    $('#reviewForm').submit(function(e) {
+        e.preventDefault();
+        
+        var form = $(this);
+        var bookId = form.data('book-id');
+        var rating = form.find('input[name="rating"]:checked').val();
+        var comment = form.find('#comment').val();
+        
+        if (!rating) {
+            showNotification('Please select a rating.', 'error');
+            return;
+        }
+        
+        var submitBtn = form.find('button[type="submit"]');
+        var originalText = submitBtn.html();
+        
+        submitBtn.html('<i class="fas fa-spinner fa-spin me-1"></i>Submitting...');
+        submitBtn.prop('disabled', true);
         
         $.ajax({
             url: '/reviews/rate/',
@@ -18,25 +33,45 @@ $(document).ready(function() {
             data: {
                 book_id: bookId,
                 rating: rating,
+                comment: comment,
                 csrfmiddlewaretoken: $('[name=csrfmiddlewaretoken]').val()
             },
             success: function(response) {
                 if (response.success) {
-                    // Update the displayed rating
-                    $('.average-rating').text(response.average_rating);
-                    $('.total-ratings').text(response.total_ratings);
+                    showNotification('Review submitted successfully!', 'success');
                     
-                    // Show success message
-                    showNotification('Rating submitted successfully!', 'success');
-                    
-                    // Update star display
-                    updateStarDisplay(rating);
+                    // Reload the page to show the updated review
+                    setTimeout(function() {
+                        location.reload();
+                    }, 1500);
                 } else {
-                    showNotification('Error submitting rating. Please try again.', 'error');
+                    showNotification(response.message || 'Error submitting review. Please try again.', 'error');
+                    submitBtn.html(originalText);
+                    submitBtn.prop('disabled', false);
                 }
             },
             error: function() {
-                showNotification('Error submitting rating. Please try again.', 'error');
+                showNotification('Error submitting review. Please try again.', 'error');
+                submitBtn.html(originalText);
+                submitBtn.prop('disabled', false);
+            }
+        });
+    });
+
+    // Star Rating Input (for review form)
+    $('.rating-input .star-label').click(function() {
+        var rating = parseInt($(this).find('input').val());
+        var container = $(this).closest('.rating-input');
+        
+        // Update radio button
+        container.find('input[type="radio"]').prop('checked', false);
+        container.find('input[value="' + rating + '"]').prop('checked', true);
+        
+        // Update star display
+        container.find('.star-label i').removeClass('fas').addClass('far');
+        container.find('.star-label').each(function(index) {
+            if (index < rating) {
+                $(this).find('i').removeClass('far').addClass('fas');
             }
         });
     });

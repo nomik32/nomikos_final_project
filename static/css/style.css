@@ -717,4 +717,51 @@ footer a:hover {
 
 .card-actions .btn:hover {
     z-index: 11;
+}
+
+/* Review Form Styles */
+.review-form {
+    border: 1px solid var(--border-color);
+}
+
+.rating-input {
+    display: flex;
+    gap: 5px;
+    align-items: center;
+}
+
+.rating-input .star-label {
+    cursor: pointer;
+    transition: transform 0.1s ease;
+}
+
+.rating-input .star-label:hover {
+    transform: scale(1.1);
+}
+
+.rating-input .star-label i {
+    color: #ffc107;
+}
+
+.rating-input .star-label:hover i,
+.rating-input .star-label:hover ~ .star-label i {
+    color: #ffc107 !important;
+}
+
+.review-item {
+    border: 1px solid var(--border-color);
+    border-radius: var(--radius-sm);
+    padding: 1rem;
+    margin-bottom: 1rem;
+    background: var(--white);
+}
+
+.review-item:hover {
+    box-shadow: var(--shadow-sm);
+}
+
+.order-summary {
+    background: var(--light-gray);
+    border-radius: var(--radius-sm);
+    padding: 1rem;
 } 

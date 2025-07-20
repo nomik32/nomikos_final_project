@@ -1,0 +1,74 @@
+{% extends 'base/base.html' %}
+{% load static %}
+
+{% block title %}Delete Review - {{ review.book.title }}{% endblock %}
+
+{% block content %}
+<div class="container my-4">
+    <div class="row justify-content-center">
+        <div class="col-lg-6">
+            <div class="card">
+                <div class="card-header bg-danger text-white">
+                    <h4 class="mb-0">
+                        <i class="fas fa-exclamation-triangle me-2"></i>Delete Review
+                    </h4>
+                </div>
+                <div class="card-body">
+                    <div class="book-info mb-4">
+                        <div class="row">
+                            <div class="col-md-3">
+                                {% if review.book.cover_image %}
+                                    <img src="{{ review.book.cover_image.url }}" alt="{{ review.book.title }}" class="img-fluid rounded">
+                                {% else %}
+                                    <div class="bg-light rounded d-flex align-items-center justify-content-center" style="height: 100px;">
+                                        <i class="fas fa-book fa-2x text-muted"></i>
+                                    </div>
+                                {% endif %}
+                            </div>
+                            <div class="col-md-9">
+                                <h5>{{ review.book.title }}</h5>
+                                <p class="text-muted">by {{ review.book.author }}</p>
+                                <div class="rating">
+                                    {% for i in "12345" %}
+                                        {% if forloop.counter <= review.rating %}
+                                            <i class="fas fa-star text-warning"></i>
+                                        {% else %}
+                                            <i class="far fa-star text-warning"></i>
+                                        {% endif %}
+                                    {% endfor %}
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+
+                    <div class="alert alert-warning">
+                        <h6><i class="fas fa-exclamation-triangle me-2"></i>Are you sure?</h6>
+                        <p class="mb-0">This action cannot be undone. Your review will be permanently deleted.</p>
+                    </div>
+
+                    {% if review.comment %}
+                    <div class="mb-3">
+                        <label class="form-label">Your Review:</label>
+                        <div class="border rounded p-3 bg-light">
+                            {{ review.comment }}
+                        </div>
+                    </div>
+                    {% endif %}
+
+                    <form method="post">
+                        {% csrf_token %}
+                        <div class="d-flex justify-content-between">
+                            <a href="{% url 'reviews:my_reviews' %}" class="btn btn-outline-secondary">
+                                <i class="fas fa-arrow-left me-1"></i>Cancel
+                            </a>
+                            <button type="submit" class="btn btn-danger">
+                                <i class="fas fa-trash me-1"></i>Delete Review
+                            </button>
+                        </div>
+                    </form>
+                </div>
+            </div>
+        </div>
+    </div>
+</div>
+{% endblock %} 

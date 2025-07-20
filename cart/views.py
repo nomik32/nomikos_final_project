@@ -194,28 +194,29 @@ def clear_cart(request):
 @login_required
 def checkout(request):
     """Process the checkout (simulated)"""
-    user_cart = request.user.cart
-    
-    # Check if cart is empty
-    if not user_cart.items.exists():
-        messages.warning(request, 'Your cart is empty.')
-        return redirect('cart:cart_detail')
-    
-    if request.method == 'POST':
-        # Simulate checkout process
-        # In a real app, this would connect to a payment system
+    try:
+        user_cart = Cart.objects.get(user=request.user)
         
-        # Clear the cart after successful checkout
+        if not user_cart.items.exists():
+            messages.warning(request, 'Your cart is empty.')
+            return redirect('cart:cart_detail')
+        
+        cart_items = list(user_cart.items.all())
+        total_price = user_cart.total_price
+        
         user_cart.items.all().delete()
         
-        messages.success(request, 'Order placed successfully! Your books are ready for download.')
-        return redirect('home')
-    
-    context = {
-        'cart': user_cart,
-        'cart_items': user_cart.items.all(),
-    }
-    return render(request, 'cart/checkout.html', context)
+        messages.success(request, 'Thank you for your purchase! Your eBooks will be sent to your email shortly.')
+        
+        context = {
+            'cart_items': cart_items,
+            'total_price': total_price,
+        }
+        return render(request, 'cart/checkout.html', context)
+        
+    except Cart.DoesNotExist:
+        messages.warning(request, 'Your cart is empty.')
+        return redirect('cart:cart_detail')
 
 @login_required
 def add_and_redirect(request, book_id):

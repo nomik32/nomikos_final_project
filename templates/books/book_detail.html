@@ -64,6 +64,41 @@
                     </div>
                 </div>
             </div>
+
+            {% if user.is_authenticated %}
+            <div class="review-form mt-4 p-4 bg-light rounded-4">
+                <h4 class="mb-3"><i class="fas fa-star me-2"></i>Write a Review</h4>
+                {% if user_review %}
+                    <div class="alert alert-info">
+                        <i class="fas fa-info-circle me-2"></i>You've already reviewed this book.
+                        <a href="{% url 'reviews:edit_review' user_review.id %}" class="btn btn-sm btn-outline-primary ms-2">
+                            <i class="fas fa-edit me-1"></i>Edit Your Review
+                        </a>
+                    </div>
+                {% else %}
+                    <form id="reviewForm" data-book-id="{{ book.id }}">
+                        <div class="mb-3">
+                            <label class="form-label">Rating</label>
+                            <div class="rating-input">
+                                {% for i in "12345" %}
+                                <input type="radio" name="rating" value="{{ forloop.counter }}" id="star{{ forloop.counter }}" class="d-none" required>
+                                <label for="star{{ forloop.counter }}" class="star-label">
+                                    <i class="far fa-star fa-2x text-warning"></i>
+                                </label>
+                                {% endfor %}
+                            </div>
+                        </div>
+                        <div class="mb-3">
+                            <label for="comment" class="form-label">Review Comment (Optional)</label>
+                            <textarea class="form-control" id="comment" name="comment" rows="3" placeholder="Share your thoughts about this book..."></textarea>
+                        </div>
+                        <button type="submit" class="btn btn-primary">
+                            <i class="fas fa-paper-plane me-1"></i>Submit Review
+                        </button>
+                    </form>
+                {% endif %}
+            </div>
+            {% endif %}
         </div>
         <!-- Sidebar -->
         <div class="col-lg-4">
